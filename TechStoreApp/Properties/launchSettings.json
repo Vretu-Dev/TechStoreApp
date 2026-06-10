@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TechStoreApp (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "TechStoreApp (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

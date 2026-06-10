@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="TechStoreApp.Views.CatalogPage"
+    x:Name="PageRoot"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TechStoreApp.Views"
+    xmlns:vm="using:TechStoreApp.ViewModels"
+    xmlns:models="using:TechStoreApp.Models"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.DataContext>
+        <vm:CatalogViewModel />
+    </Page.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Padding="0,0,0,20">
+            <AutoSuggestBox PlaceholderText="Szukaj produktów..." 
+                            Text="{Binding SearchText, Mode=TwoWay}" 
+                            Width="300" QueryIcon="Find" />
+            
+            <ComboBox PlaceholderText="Kategoria" 
+                      ItemsSource="{Binding Categories}" 
+                      SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                      DisplayMemberPath="Name" Width="200" />
+
+            <NumberBox Header="Min Cena" Value="{Binding MinPrice, Mode=TwoWay}" Width="100" SpinButtonPlacementMode="Compact" />
+            <NumberBox Header="Max Cena" Value="{Binding MaxPrice, Mode=TwoWay}" Width="100" SpinButtonPlacementMode="Compact" />
+        </StackPanel>
+
+        <GridView Grid.Row="1" ItemsSource="{Binding Products}" SelectionMode="None">
+            <GridView.ItemTemplate>
+                <DataTemplate x:DataType="models:Product">
+                    <StackPanel Width="200" Padding="10" Spacing="5" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="4">
+                        <TextBlock Text="{x:Bind Name}" FontWeight="Bold" MaxLines="2" TextWrapping="Wrap" Height="40" />
+                        <TextBlock Text="{x:Bind Category.Name}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Gray" />
+                        <TextBlock Text="{x:Bind Price, Converter={StaticResource PriceConverter}}" FontWeight="SemiBold" Foreground="{ThemeResource SystemAccentColor}" />
+                        <Button Content="Dodaj do koszyka" 
+                                Command="{Binding DataContext.AddToCartCommand, ElementName=PageRoot}" 
+                                CommandParameter="{x:Bind}"
+                                HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" />
+                    </StackPanel>
+                </DataTemplate>
+            </GridView.ItemTemplate>
+        </GridView>
+    </Grid>
+</Page>

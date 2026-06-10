@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="TechStoreApp.Views.CartPage"
+    x:Name="PageRoot"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TechStoreApp.Views"
+    xmlns:vm="using:TechStoreApp.ViewModels"
+    xmlns:services="using:TechStoreApp.Services"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.DataContext>
+        <vm:CartViewModel />
+    </Page.DataContext>
+
+    <Grid Padding="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Twój Koszyk" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,20" />
+
+        <ListView Grid.Row="1" ItemsSource="{Binding Items}" SelectionMode="None">
+            <ListView.Header>
+                <Grid Padding="12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Produkt" FontWeight="Bold" />
+                    <TextBlock Grid.Column="1" Text="Ilość" FontWeight="Bold" />
+                    <TextBlock Grid.Column="2" Text="Suma" FontWeight="Bold" />
+                </Grid>
+            </ListView.Header>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="services:CartItem">
+                    <Grid Padding="0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="{x:Bind Product.Name}" FontWeight="SemiBold" />
+                            <TextBlock Text="{x:Bind Product.Sku}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Gray" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" Text="{x:Bind Quantity}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="2" Text="{x:Bind TotalPrice, Converter={StaticResource PriceConverter}}" VerticalAlignment="Center" />
+                        <Button Grid.Column="3" 
+                                Command="{Binding DataContext.RemoveItemCommand, ElementName=PageRoot}" 
+                                CommandParameter="{x:Bind}" 
+                                Style="{StaticResource SubtleButtonStyle}">
+                            <SymbolIcon Symbol="Delete" />
+                        </Button>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <StackPanel Grid.Row="2" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
+            <TextBlock Text="{Binding TotalAmount, Converter={StaticResource PriceConverter}, ConverterParameter='Razem: '}" 
+                       Style="{StaticResource SubtitleTextBlockStyle}" HorizontalAlignment="Right" />
+            
+            <TextBlock Text="{Binding OrderMessage}" HorizontalAlignment="Right" 
+                       Foreground="{ThemeResource SystemAccentColor}" TextWrapping="Wrap" />
+
+            <Button Content="Złóż zamówienie" 
+                    Command="{Binding PlaceOrderCommand}" 
+                    Style="{StaticResource AccentButtonStyle}" 
+                    HorizontalAlignment="Right" Padding="30,10" />
+        </StackPanel>
+    </Grid>
+</Page>

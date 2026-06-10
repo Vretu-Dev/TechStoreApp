@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="TechStoreApp.Views.LoginPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TechStoreApp.Views"
+    xmlns:vm="using:TechStoreApp.ViewModels"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.DataContext>
+        <vm:LoginViewModel x:Name="ViewModel" />
+    </Page.DataContext>
+
+    <Grid VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="400" Width="400">
+        <StackPanel Spacing="15" Padding="30" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="8">
+            <TextBlock Text="{Binding IsLoginMode, Converter={StaticResource LoginTitleConverter}}" 
+                       Style="{StaticResource TitleTextBlockStyle}" 
+                       HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+            <TextBox Header="E-mail" Text="{Binding Email, Mode=TwoWay}" PlaceholderText="admin lub email@example.com" />
+            
+            <PasswordBox Header="Hasło" Password="{Binding Password, Mode=TwoWay}" />
+
+            <StackPanel Visibility="{Binding IsRegisterMode, Converter={StaticResource BoolToVisibilityConverter}}" Spacing="15">
+                <TextBox Header="Imię" Text="{Binding FirstName, Mode=TwoWay}" />
+                <TextBox Header="Nazwisko" Text="{Binding LastName, Mode=TwoWay}" />
+            </StackPanel>
+
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" HorizontalAlignment="Center" TextWrapping="Wrap" />
+
+            <Button Content="Zaloguj się" 
+                    Command="{Binding LoginCommand}" 
+                    HorizontalAlignment="Stretch" 
+                    Style="{StaticResource AccentButtonStyle}"
+                    Visibility="{Binding IsLoginMode, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+            <Button Content="Zarejestruj się" 
+                    Command="{Binding RegisterCommand}" 
+                    HorizontalAlignment="Stretch" 
+                    Style="{StaticResource AccentButtonStyle}"
+                    Visibility="{Binding IsRegisterMode, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+            <HyperlinkButton Content="{Binding IsLoginMode, Converter={StaticResource LoginToggleConverter}}" 
+                             Command="{Binding ToggleModeCommand}" 
+                             HorizontalAlignment="Center" />
+        </StackPanel>
+    </Grid>
+</Page>
