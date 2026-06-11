@@ -18,11 +18,18 @@ namespace TechStoreApp.ViewModels
             set => SetProperty(ref _products, value);
         }
 
-        private ObservableCollection<Category> _categories = new();
-        public ObservableCollection<Category> Categories
+        private ObservableCollection<Category> _parentCategories = new();
+        public ObservableCollection<Category> ParentCategories
         {
-            get => _categories;
-            set => SetProperty(ref _categories, value);
+            get => _parentCategories;
+            set => SetProperty(ref _parentCategories, value);
+        }
+
+        private ObservableCollection<Category> _subCategories = new();
+        public ObservableCollection<Category> SubCategories
+        {
+            get => _subCategories;
+            set => SetProperty(ref _subCategories, value);
         }
 
         private string _searchText = string.Empty;
@@ -38,21 +45,51 @@ namespace TechStoreApp.ViewModels
             }
         }
 
-        private Category? _selectedCategory;
-        public Category? SelectedCategory
+        private Product? _selectedProduct;
+        public Product? SelectedProduct
         {
-            get => _selectedCategory;
+            get => _selectedProduct;
             set
             {
-                if (SetProperty(ref _selectedCategory, value))
+                if (SetProperty(ref _selectedProduct, value))
+                {
+                    OnPropertyChanged(nameof(IsProductSelected));
+                }
+            }
+        }
+
+        public bool IsProductSelected => SelectedProduct != null;
+
+        private Category? _selectedParentCategory;
+        public Category? SelectedParentCategory
+        {
+            get => _selectedParentCategory;
+            set
+            {
+                if (SetProperty(ref _selectedParentCategory, value))
+                {
+                    UpdateSubCategories();
+                    SelectedSubCategory = null;
+                    FilterProducts();
+                }
+            }
+        }
+
+        private Category? _selectedSubCategory;
+        public Category? SelectedSubCategory
+        {
+            get => _selectedSubCategory;
+            set
+            {
+                if (SetProperty(ref _selectedSubCategory, value))
                 {
                     FilterProducts();
                 }
             }
         }
 
-        private decimal _minPrice = 0;
-        public decimal MinPrice
+        private double _minPrice = 0;
+        public double MinPrice
         {
             get => _minPrice;
             set
@@ -64,8 +101,8 @@ namespace TechStoreApp.ViewModels
             }
         }
 
-        private decimal _maxPrice = 10000;
-        public decimal MaxPrice
+        private double _maxPrice = 20000;
+        public double MaxPrice
         {
             get => _maxPrice;
             set
@@ -78,38 +115,73 @@ namespace TechStoreApp.ViewModels
         }
 
         public ICommand AddToCartCommand { get; }
+        public ICommand ClearParentCategoryCommand { get; }
+        public ICommand ClearSubCategoryCommand { get; }
+
+        private List<Category> _allCategories = new();
 
         public CatalogViewModel()
         {
             AddToCartCommand = new RelayCommand(p => DoAddToCart(p as Product));
+            ClearParentCategoryCommand = new RelayCommand(_ => SelectedParentCategory = null);
+            ClearSubCategoryCommand = new RelayCommand(_ => SelectedSubCategory = null);
             LoadData();
         }
 
         private void LoadData()
         {
             using var db = new TechStoreDbContext();
-            var cats = db.Categories.ToList();
-            Categories = new ObservableCollection<Category>(cats);
+            _allCategories = db.Categories.ToList();
+            ParentCategories = new ObservableCollection<Category>(_allCategories.Where(c => c.ParentCategoryId == null));
             
             FilterProducts();
+        }
+
+        private void UpdateSubCategories()
+        {
+            if (SelectedParentCategory == null)
+            {
+                SubCategories.Clear();
+            }
+            else
+            {
+                var subs = _allCategories.Where(c => c.ParentCategoryId == SelectedParentCategory.CategoryId).ToList();
+                SubCategories = new ObservableCollection<Category>(subs);
+            }
         }
 
         private void FilterProducts()
         {
             using var db = new TechStoreDbContext();
-            IQueryable<Product> query = db.Products.Include(p => p.Category);
+            IQueryable<Product> query = db.Products
+                .Include(p => p.Category)
+                .Include(p => p.ProductAttributes);
 
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                query = query.Where(p => p.Name.Contains(SearchText) || p.Sku.Contains(SearchText));
+                var lowerSearchText = SearchText.ToLower();
+                query = query.Where(p => p.Name.ToLower().Contains(lowerSearchText) || p.Sku.ToLower().Contains(lowerSearchText));
             }
 
-            if (SelectedCategory != null)
+            if (SelectedSubCategory != null)
             {
-                query = query.Where(p => p.CategoryId == SelectedCategory.CategoryId);
+                // Exact subcategory selected
+                query = query.Where(p => p.CategoryId == SelectedSubCategory.CategoryId);
+            }
+            else if (SelectedParentCategory != null)
+            {
+                // Parent category selected, show parent and all its children
+                var categoryIds = _allCategories
+                    .Where(c => c.CategoryId == SelectedParentCategory.CategoryId || c.ParentCategoryId == SelectedParentCategory.CategoryId)
+                    .Select(c => c.CategoryId)
+                    .ToList();
+
+                query = query.Where(p => categoryIds.Contains(p.CategoryId));
             }
 
-            query = query.Where(p => p.Price >= MinPrice && p.Price <= MaxPrice);
+            decimal min = double.IsNaN(MinPrice) ? 0 : (decimal)MinPrice;
+            decimal max = double.IsNaN(MaxPrice) ? decimal.MaxValue : (decimal)MaxPrice;
+            query = query.Where(p => p.Price >= min && p.Price <= max);
 
             Products = new ObservableCollection<Product>(query.ToList());
         }

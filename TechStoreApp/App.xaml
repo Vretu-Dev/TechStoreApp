@@ -12,6 +12,7 @@
             <conv:LoginToggleConverter x:Key="LoginToggleConverter" />
             <conv:PriceConverter x:Key="PriceConverter" />
             <conv:StringFormatConverter x:Key="StringFormatConverter" />
+            <conv:NullToBoolConverter x:Key="NullToBoolConverter" />
             
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />

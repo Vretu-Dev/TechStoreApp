@@ -27,57 +27,125 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <AutoSuggestBox Grid.Column="0" 
                             PlaceholderText="Szukaj produktów..." 
-                            Text="{Binding SearchText, Mode=TwoWay}" 
+                            Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                             Width="300" 
                             QueryIcon="Find" 
                             VerticalAlignment="Bottom" 
                             Margin="0,0,10,0" />
             
-            <ComboBox Grid.Column="1" 
-                      PlaceholderText="Wszystkie kategorie" 
-                      Header="Kategoria"
-                      ItemsSource="{Binding Categories}" 
-                      SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
-                      DisplayMemberPath="Name" 
-                      Width="200" 
-                      VerticalAlignment="Bottom" 
-                      Margin="0,0,10,0" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,10,0">
+                <ComboBox PlaceholderText="Wszystkie kategorie" 
+                          Header="Kategoria Główna"
+                          ItemsSource="{Binding ParentCategories}" 
+                          SelectedItem="{Binding SelectedParentCategory, Mode=TwoWay}"
+                          DisplayMemberPath="Name" 
+                          Width="180" 
+                          VerticalAlignment="Bottom" />
+                <Button Content="X" Command="{Binding ClearParentCategoryCommand}" Margin="5,0,0,0" VerticalAlignment="Bottom" 
+                        ToolTipService.ToolTip="Wyczyść kategorię" />
+            </StackPanel>
 
-            <NumberBox Grid.Column="2" 
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,10,0">
+                <ComboBox PlaceholderText="Wszystkie podkategorie" 
+                          Header="Podkategoria"
+                          ItemsSource="{Binding SubCategories}" 
+                          SelectedItem="{Binding SelectedSubCategory, Mode=TwoWay}"
+                          DisplayMemberPath="Name" 
+                          Width="180" 
+                          VerticalAlignment="Bottom" 
+                          IsEnabled="{Binding SelectedParentCategory, Converter={StaticResource NullToBoolConverter}}" />
+                <Button Content="X" Command="{Binding ClearSubCategoryCommand}" Margin="5,0,0,0" VerticalAlignment="Bottom" 
+                        IsEnabled="{Binding SelectedParentCategory, Converter={StaticResource NullToBoolConverter}}"
+                        ToolTipService.ToolTip="Wyczyść podkategorię" />
+            </StackPanel>
+
+            <NumberBox Grid.Column="3" 
                        Header="Cena od" 
-                       Value="{Binding MinPrice, Mode=TwoWay}" 
-                       Width="120" 
+                       Value="{Binding MinPrice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                       Width="110" 
                        SpinButtonPlacementMode="Compact" 
                        VerticalAlignment="Bottom" 
                        Margin="0,0,10,0" />
 
-            <NumberBox Grid.Column="3" 
+            <NumberBox Grid.Column="4" 
                        Header="Cena do" 
-                       Value="{Binding MaxPrice, Mode=TwoWay}" 
-                       Width="120" 
+                       Value="{Binding MaxPrice, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                       Width="110" 
                        SpinButtonPlacementMode="Compact" 
                        VerticalAlignment="Bottom" />
         </Grid>
 
-        <GridView Grid.Row="1" ItemsSource="{Binding Products}" SelectionMode="None">
-            <GridView.ItemTemplate>
-                <DataTemplate x:DataType="models:Product">
-                    <StackPanel Width="200" Padding="10" Spacing="5" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="4">
-                        <TextBlock Text="{x:Bind Name}" FontWeight="Bold" MaxLines="2" TextWrapping="Wrap" Height="40" />
-                        <TextBlock Text="{x:Bind Category.Name}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Gray" />
-                        <TextBlock Text="{x:Bind Price, Converter={StaticResource PriceConverter}}" FontWeight="SemiBold" Foreground="{ThemeResource SystemAccentColor}" />
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="350" />
+            </Grid.ColumnDefinitions>
+
+            <GridView Grid.Column="0" ItemsSource="{Binding Products}" 
+                      SelectedItem="{Binding SelectedProduct, Mode=TwoWay}"
+                      Margin="0,0,20,0">
+                <GridView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Product">
+                        <StackPanel Width="220" Padding="15" Spacing="8" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="8">
+                            <TextBlock Text="{x:Bind Name}" FontWeight="Bold" MaxLines="2" TextWrapping="Wrap" Height="45" />
+                            <TextBlock Text="{x:Bind Category.Name}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Gray" />
+                            <TextBlock Text="{x:Bind Price, Converter={StaticResource PriceConverter}}" FontWeight="SemiBold" Foreground="{ThemeResource SystemAccentColor}" />
+                            <Button Content="Dodaj do koszyka" 
+                                    Command="{Binding DataContext.AddToCartCommand, ElementName=PageRoot}" 
+                                    CommandParameter="{x:Bind}"
+                                    HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </GridView.ItemTemplate>
+            </GridView>
+
+            <Grid Grid.Column="1" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="8" Padding="20" 
+                  Visibility="{Binding IsProductSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                <ScrollViewer>
+                    <StackPanel Spacing="15">
+                        <TextBlock Text="{Binding SelectedProduct.Name}" Style="{StaticResource SubtitleTextBlockStyle}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding SelectedProduct.Category.Name}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Gray" />
+                        
+                        <TextBlock Text="{Binding SelectedProduct.Price, Converter={StaticResource PriceConverter}}" 
+                                   Style="{StaticResource TitleTextBlockStyle}" Foreground="{ThemeResource SystemAccentColor}" />
+                        
                         <Button Content="Dodaj do koszyka" 
-                                Command="{Binding DataContext.AddToCartCommand, ElementName=PageRoot}" 
-                                CommandParameter="{x:Bind}"
-                                HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" />
+                                Command="{Binding AddToCartCommand}" 
+                                CommandParameter="{Binding SelectedProduct}"
+                                HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" 
+                                Padding="10" />
+
+                        <Border BorderThickness="0,1,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,10" />
+                        
+                        <TextBlock Text="Opis" FontWeight="Bold" />
+                        <TextBlock Text="{Binding SelectedProduct.Description}" TextWrapping="Wrap" />
+                        
+                        <Border BorderThickness="0,1,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="0,10" />
+
+                        <TextBlock Text="Specyfikacja" FontWeight="Bold" />
+                        <ItemsControl ItemsSource="{Binding SelectedProduct.ProductAttributes}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:ProductAttribute">
+                                    <Grid Margin="0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{x:Bind KeyName}" Foreground="Gray" />
+                                        <TextBlock Grid.Column="1" Text="{x:Bind Value}" TextWrapping="Wrap" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
-                </DataTemplate>
-            </GridView.ItemTemplate>
-        </GridView>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
     </Grid>
 </Page>

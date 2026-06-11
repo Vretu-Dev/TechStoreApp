@@ -28,6 +28,7 @@ namespace TechStoreApp.ViewModels
             var orders = db.Orders
                 .Include(o => o.OrderDetails)
                 .ThenInclude(od => od.Product)
+                .Include(o => o.Shipments)
                 .Where(o => o.CustomerId == AuthService.CurrentUser.CustomerId)
                 .OrderByDescending(o => o.OrderDate)
                 .ToList();

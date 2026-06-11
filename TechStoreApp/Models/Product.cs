@@ -23,6 +23,12 @@ public partial class Product : ViewModels.BaseViewModel
     private int _categoryId;
     public int CategoryId { get => _categoryId; set => SetProperty(ref _categoryId, value); }
 
+    private string? _description;
+    public string? Description { get => _description; set => SetProperty(ref _description, value); }
+
+    private string? _imageUrl;
+    public string? ImageUrl { get => _imageUrl; set => SetProperty(ref _imageUrl, value); }
+
     private Category _category = null!;
     public virtual Category Category { get => _category; set => SetProperty(ref _category, value); }
 

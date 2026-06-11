@@ -54,6 +54,17 @@
                                     <TextBlock Text="Płatność:" />
                                     <TextBlock Text="{x:Bind PaymentMethod}" />
                                 </StackPanel>
+
+                                <ItemsControl ItemsSource="{x:Bind Shipments}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="models:Shipment">
+                                            <StackPanel Margin="0,5,0,0">
+                                                <TextBlock Text="{x:Bind TrackingNumber, Converter={StaticResource StringFormatConverter}, ConverterParameter='Nr przesyłki: {0}'}" FontWeight="SemiBold" Foreground="{ThemeResource SystemAccentColor}" />
+                                                <TextBlock Text="{x:Bind ShippedDate, Converter={StaticResource StringFormatConverter}, ConverterParameter='Data wysyłki: {0:dd.MM.yyyy}'}" Style="{StaticResource CaptionTextBlockStyle}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                                 
                                 <TextBlock Text="Produkty" FontWeight="Bold" Margin="0,10,0,0" />
                                 <ListView ItemsSource="{x:Bind OrderDetails}" SelectionMode="None">

@@ -111,6 +111,34 @@ namespace TechStoreApp.ViewModels
         private Category? _selectedEditCategory;
         public Category? SelectedEditCategory { get => _selectedEditCategory; set => SetProperty(ref _selectedEditCategory, value); }
 
+        private Category? _selectedAdminCategory;
+        public Category? SelectedAdminCategory
+        {
+            get => _selectedAdminCategory;
+            set
+            {
+                if (SetProperty(ref _selectedAdminCategory, value))
+                {
+                    if (value != null)
+                    {
+                        EditCategoryName = value.Name;
+                        SelectedParentCategory = Categories.FirstOrDefault(c => c.CategoryId == value.ParentCategoryId);
+                    }
+                }
+            }
+        }
+
+        private string _editCategoryName = string.Empty;
+        public string EditCategoryName { get => _editCategoryName; set => SetProperty(ref _editCategoryName, value); }
+
+        private Category? _selectedParentCategory;
+        public Category? SelectedParentCategory { get => _selectedParentCategory; set => SetProperty(ref _selectedParentCategory, value); }
+
+        public ICommand SaveCategoryCommand { get; }
+        public ICommand AddCategoryCommand { get; }
+        public ICommand DeleteCategoryCommand { get; }
+        public ICommand ClearParentCategoryCommand { get; }
+
         public ICommand SaveProductCommand { get; }
         public ICommand AddProductCommand { get; }
         public ICommand DeleteProductCommand { get; }
@@ -118,6 +146,44 @@ namespace TechStoreApp.ViewModels
         public ICommand DeleteUserCommand { get; }
         public ICommand ResetPasswordCommand { get; }
         public ICommand DeleteOrderCommand { get; }
+        public ICommand ChangeOrderStatusCommand { get; }
+
+        // --- WIZARD PROPERTIES ---
+        private bool _isWizardOpen;
+        public bool IsWizardOpen { get => _isWizardOpen; set => SetProperty(ref _isWizardOpen, value); }
+
+        private string _wizardName = string.Empty;
+        public string WizardName { get => _wizardName; set => SetProperty(ref _wizardName, value); }
+
+        private string _wizardSku = string.Empty;
+        public string WizardSku { get => _wizardSku; set => SetProperty(ref _wizardSku, value); }
+
+        private double _wizardPrice;
+        public double WizardPrice { get => _wizardPrice; set => SetProperty(ref _wizardPrice, value); }
+
+        private int _wizardStock;
+        public int WizardStock { get => _wizardStock; set => SetProperty(ref _wizardStock, value); }
+
+        private string _wizardDescription = string.Empty;
+        public string WizardDescription { get => _wizardDescription; set => SetProperty(ref _wizardDescription, value); }
+
+        private Category? _wizardCategory;
+        public Category? WizardCategory { get => _wizardCategory; set => SetProperty(ref _wizardCategory, value); }
+
+        private ObservableCollection<ProductAttribute> _wizardAttributes = new();
+        public ObservableCollection<ProductAttribute> WizardAttributes { get => _wizardAttributes; set => SetProperty(ref _wizardAttributes, value); }
+
+        public ICommand OpenWizardCommand { get; }
+        public ICommand CloseWizardCommand { get; }
+        public ICommand SaveWizardCommand { get; }
+        public ICommand AddWizardAttributeCommand { get; }
+        public ICommand RemoveWizardAttributeCommand { get; }
+        // -------------------------
+
+        public ObservableCollection<string> OrderStatuses { get; } = new() 
+        { 
+            "Nowe", "W trakcie realizacji", "Wysłane", "Zrealizowane", "Anulowane" 
+        };
 
         private ObservableCollection<Order> _userOrders = new();
         public ObservableCollection<Order> UserOrders { get => _userOrders; set => SetProperty(ref _userOrders, value); }
@@ -144,7 +210,136 @@ namespace TechStoreApp.ViewModels
             DeleteUserCommand = new RelayCommand(u => DoDeleteUser(u as Customer));
             ResetPasswordCommand = new RelayCommand(u => DoResetPassword(u as Customer));
             DeleteOrderCommand = new RelayCommand(o => DoDeleteOrder(o as Order));
+            ChangeOrderStatusCommand = new RelayCommand(o => DoChangeOrderStatus(o as Order));
+            SaveCategoryCommand = new RelayCommand(_ => DoSaveCategory());
+            AddCategoryCommand = new RelayCommand(_ => DoAddCategory());
+            DeleteCategoryCommand = new RelayCommand(_ => DoDeleteCategory());
+            ClearParentCategoryCommand = new RelayCommand(_ => SelectedParentCategory = null);
+
+            OpenWizardCommand = new RelayCommand(_ => DoOpenWizard());
+            CloseWizardCommand = new RelayCommand(_ => IsWizardOpen = false);
+            SaveWizardCommand = new RelayCommand(_ => DoSaveWizardProduct());
+            AddWizardAttributeCommand = new RelayCommand(_ => WizardAttributes.Add(new ProductAttribute { KeyName = "Nowa cecha", Value = "Wartość" }));
+            RemoveWizardAttributeCommand = new RelayCommand(a => { if (a is ProductAttribute attr) WizardAttributes.Remove(attr); });
+
             LoadData();
+        }
+
+        private void DoOpenWizard()
+        {
+            WizardName = string.Empty;
+            WizardSku = string.Empty;
+            WizardPrice = 0;
+            WizardStock = 0;
+            WizardDescription = string.Empty;
+            WizardCategory = Categories.FirstOrDefault();
+            WizardAttributes.Clear();
+            IsWizardOpen = true;
+            ErrorMessage = string.Empty;
+        }
+
+        private void DoSaveWizardProduct()
+        {
+            if (WizardCategory == null) return;
+            ErrorMessage = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(WizardName) || string.IsNullOrWhiteSpace(WizardSku))
+            {
+                ErrorMessage = "Nazwa i SKU są wymagane.";
+                return;
+            }
+
+            using var db = new TechStoreDbContext();
+
+            if (db.Products.Any(p => p.Sku == WizardSku))
+            {
+                ErrorMessage = "Produkt z tym SKU już istnieje!";
+                return;
+            }
+
+            var product = new Product
+            {
+                Name = WizardName,
+                Sku = WizardSku,
+                Price = (decimal)WizardPrice,
+                StockAmount = WizardStock,
+                CategoryId = WizardCategory.CategoryId,
+                Description = WizardDescription,
+                ProductAttributes = WizardAttributes.ToList()
+            };
+
+            db.Products.Add(product);
+            db.SaveChanges();
+            
+            LoadData();
+            IsWizardOpen = false;
+        }
+
+        private void DoSaveCategory()
+        {
+            if (SelectedAdminCategory == null) return;
+            if (string.IsNullOrWhiteSpace(EditCategoryName)) return;
+
+            using var db = new TechStoreDbContext();
+            var cat = db.Categories.Find(SelectedAdminCategory.CategoryId);
+            if (cat != null)
+            {
+                cat.Name = EditCategoryName;
+                cat.ParentCategoryId = SelectedParentCategory?.CategoryId;
+
+                // Prevent circular reference
+                if (cat.ParentCategoryId == cat.CategoryId)
+                {
+                    cat.ParentCategoryId = null;
+                }
+
+                db.SaveChanges();
+                LoadData();
+            }
+        }
+
+        private void DoAddCategory()
+        {
+            if (string.IsNullOrWhiteSpace(EditCategoryName)) return;
+
+            using var db = new TechStoreDbContext();
+            var cat = new Category
+            {
+                Name = EditCategoryName,
+                ParentCategoryId = SelectedParentCategory?.CategoryId
+            };
+            db.Categories.Add(cat);
+            db.SaveChanges();
+            LoadData();
+
+            EditCategoryName = string.Empty;
+        }
+
+        private void DoDeleteCategory()
+        {
+            if (SelectedAdminCategory == null) return;
+
+            using var db = new TechStoreDbContext();
+            var cat = db.Categories.Find(SelectedAdminCategory.CategoryId);
+            if (cat != null)
+            {
+                db.Categories.Remove(cat);
+                db.SaveChanges();
+                LoadData();
+            }
+        }
+
+        private void DoChangeOrderStatus(Order? order)
+        {
+            if (order == null) return;
+
+            using var db = new TechStoreDbContext();
+            var dbOrder = db.Orders.Find(order.OrderId);
+            if (dbOrder != null)
+            {
+                dbOrder.Status = order.Status;
+                db.SaveChanges();
+            }
         }
 
         private void LoadData()
@@ -184,6 +379,7 @@ namespace TechStoreApp.ViewModels
             var orders = db.Orders
                 .Include(o => o.OrderDetails)
                 .ThenInclude(od => od.Product)
+                .Include(o => o.Shipments)
                 .Where(o => o.CustomerId == SelectedUser.CustomerId)
                 .OrderByDescending(o => o.OrderDate)
                 .ToList();

@@ -180,12 +180,17 @@ namespace TechStoreApp.ViewModels
                 db.Orders.Add(order);
                 db.SaveChanges();
 
+                // Generate random tracking number
+                var random = new Random();
+                string trackingNumber = $"{SelectedCourier.Name.Substring(0, 2).ToUpper()}{random.Next(100000000, 999999999)}PL";
+
                 // Create a shipment entry as well
                 db.Shipments.Add(new Shipment
                 {
                     OrderId = order.OrderId,
                     CourierName = SelectedCourier.Name,
-                    TrackingNumber = "TBA" // To be assigned
+                    TrackingNumber = trackingNumber,
+                    ShippedDate = DateTime.Now.AddHours(2) // Simulate shipping a bit later
                 });
                 db.SaveChanges();
 

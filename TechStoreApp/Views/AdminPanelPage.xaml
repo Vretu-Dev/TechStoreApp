@@ -74,8 +74,8 @@
                         <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" TextWrapping="Wrap" />
 
                         <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
-                            <Button Content="Zapisz" Command="{Binding SaveProductCommand}" Style="{StaticResource AccentButtonStyle}" />
-                            <Button Content="Dodaj nowy" Command="{Binding AddProductCommand}" />
+                            <Button Content="Zapisz Zmiany" Command="{Binding SaveProductCommand}" Style="{StaticResource AccentButtonStyle}" />
+                            <Button Content="Kreator dodawania produktu" Command="{Binding OpenWizardCommand}" />
                             <Button Content="Usuń" Command="{Binding DeleteProductCommand}" Foreground="Red" />
                         </StackPanel>
                     </StackPanel>
@@ -166,6 +166,22 @@
                                             </Grid>
                                         </Expander.Header>
                                         <StackPanel Spacing="5" Padding="10">
+                                            <Grid ColumnSpacing="10" Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="Status:" VerticalAlignment="Center" FontWeight="Bold" />
+                                                <ComboBox Grid.Column="1" ItemsSource="{Binding DataContext.OrderStatuses, ElementName=PageRoot}"
+                                                          SelectedItem="{Binding Status, Mode=TwoWay}"
+                                                          HorizontalAlignment="Stretch">
+                                                </ComboBox>
+                                                <Button Grid.Column="2" Content="Zmień" 
+                                                        Command="{Binding DataContext.ChangeOrderStatusCommand, ElementName=PageRoot}"
+                                                        CommandParameter="{x:Bind}" />
+                                            </Grid>
+                                            
                                             <TextBlock Text="Produkty:" FontWeight="Bold" />
                                             <ItemsControl ItemsSource="{x:Bind OrderDetails}">
                                                 <ItemsControl.ItemTemplate>
@@ -188,6 +204,16 @@
                                             <Border BorderThickness="0,1,0,0" BorderBrush="Gray" Margin="0,5" />
                                             <TextBlock Text="{x:Bind ShippingMethod, Converter={StaticResource StringFormatConverter}, ConverterParameter='Dostawa: {0}'}" />
                                             <TextBlock Text="{x:Bind ShippingAddress}" />
+                                            <ItemsControl ItemsSource="{x:Bind Shipments}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:Shipment">
+                                                        <StackPanel Margin="0,5,0,0">
+                                                            <TextBlock Text="{x:Bind TrackingNumber, Converter={StaticResource StringFormatConverter}, ConverterParameter='Nr przesyłki: {0}'}" FontWeight="SemiBold" Foreground="{ThemeResource SystemAccentColor}" />
+                                                            <TextBlock Text="{x:Bind ShippedDate, Converter={StaticResource StringFormatConverter}, ConverterParameter='Wysłano: {0}'}" Style="{StaticResource CaptionTextBlockStyle}" />
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
                                         </StackPanel>
                                     </Expander>
                                 </DataTemplate>
@@ -196,6 +222,113 @@
                     </Grid>
                 </Grid>
             </PivotItem>
+            <PivotItem Header="Kategorie">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="350" />
+                    </Grid.ColumnDefinitions>
+
+                    <ListView Grid.Column="0" ItemsSource="{Binding Categories}" 
+                              SelectedItem="{Binding SelectedAdminCategory, Mode=TwoWay}"
+                              Margin="0,0,20,0">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Category">
+                                <StackPanel Padding="0,5">
+                                    <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{x:Bind ParentCategoryId, Converter={StaticResource StringFormatConverter}, ConverterParameter='ID Rodzica: {0}'}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Gray" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <StackPanel Grid.Column="1" Spacing="10" Padding="10" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="4">
+                        <TextBlock Text="Szczegóły Kategorii" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBox Header="Nazwa" Text="{Binding EditCategoryName, Mode=TwoWay}" />
+                        <TextBlock Text="Kategoria Nadrzędna" Style="{StaticResource BodyTextBlockStyle}" Margin="0,5,0,0"/>
+                        <Grid ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox ItemsSource="{Binding Categories}" 
+                                      SelectedItem="{Binding SelectedParentCategory, Mode=TwoWay}"
+                                      DisplayMemberPath="Name" HorizontalAlignment="Stretch" 
+                                      PlaceholderText="Brak (Kategoria główna)" />
+                            <Button Grid.Column="1" Content="Wyczyść" Command="{Binding ClearParentCategoryCommand}" />
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
+                            <Button Content="Zapisz" Command="{Binding SaveCategoryCommand}" Style="{StaticResource AccentButtonStyle}" />
+                            <Button Content="Dodaj nową" Command="{Binding AddCategoryCommand}" />
+                            <Button Content="Usuń" Command="{Binding DeleteCategoryCommand}" Foreground="Red" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </PivotItem>
         </Pivot>
+
+        <!-- Product Wizard Overlay -->
+        <Grid Background="{ThemeResource SolidBackgroundFillColorBaseBrush}" 
+              Visibility="{Binding IsWizardOpen, Converter={StaticResource BoolToVisibilityConverter}}"
+              CornerRadius="8" Padding="30" Margin="20"
+              HorizontalAlignment="Center" VerticalAlignment="Center" 
+              Width="600" MaxHeight="800" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            
+            <TextBlock Grid.Row="0" Text="Kreator Produktu" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,20" />
+            
+            <ScrollViewer Grid.Row="1" Margin="0,0,0,20">
+                <StackPanel Spacing="15" Padding="0,0,20,0">
+                    <TextBox Header="Nazwa" Text="{Binding WizardName, Mode=TwoWay}" />
+                    <TextBox Header="SKU" Text="{Binding WizardSku, Mode=TwoWay}" />
+                    <Grid ColumnSpacing="15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <NumberBox Grid.Column="0" Header="Cena" Value="{Binding WizardPrice, Mode=TwoWay}" SpinButtonPlacementMode="Compact" />
+                        <NumberBox Grid.Column="1" Header="Stan magazynowy" Value="{Binding WizardStock, Mode=TwoWay}" SpinButtonPlacementMode="Compact" />
+                    </Grid>
+                    <ComboBox Header="Kategoria" ItemsSource="{Binding Categories}" 
+                              SelectedItem="{Binding WizardCategory, Mode=TwoWay}"
+                              DisplayMemberPath="Name" HorizontalAlignment="Stretch" />
+                              
+                    <TextBox Header="Opis" Text="{Binding WizardDescription, Mode=TwoWay}" TextWrapping="Wrap" AcceptsReturn="True" Height="100" />
+                    
+                    <TextBlock Text="Specyfikacja (Atrybuty)" FontWeight="Bold" Margin="0,10,0,0" />
+                    <ItemsControl ItemsSource="{Binding WizardAttributes}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:ProductAttribute">
+                                <Grid ColumnSpacing="10" Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" PlaceholderText="Cecha (np. Procesor)" Text="{x:Bind KeyName, Mode=TwoWay}" />
+                                    <TextBox Grid.Column="1" PlaceholderText="Wartość (np. Intel i7)" Text="{x:Bind Value, Mode=TwoWay}" />
+                                    <Button Grid.Column="2" Content="X" 
+                                            Command="{Binding DataContext.RemoveWizardAttributeCommand, ElementName=PageRoot}" 
+                                            CommandParameter="{x:Bind}" Foreground="Red" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Content="Dodaj Atrybut" Command="{Binding AddWizardAttributeCommand}" />
+                    
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" TextWrapping="Wrap" Margin="0,10,0,0" />
+                </StackPanel>
+            </ScrollViewer>
+            
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                <Button Content="Anuluj" Command="{Binding CloseWizardCommand}" />
+                <Button Content="Zapisz Produkt" Command="{Binding SaveWizardCommand}" Style="{StaticResource AccentButtonStyle}" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Page>
