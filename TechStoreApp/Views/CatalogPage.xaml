@@ -96,9 +96,10 @@
                             <TextBlock Text="{x:Bind Name}" FontWeight="Bold" MaxLines="2" TextWrapping="Wrap" Height="45" />
                             <TextBlock Text="{x:Bind Category.Name}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Gray" />
                             <TextBlock Text="{x:Bind Price, Converter={StaticResource PriceConverter}}" FontWeight="SemiBold" Foreground="{ThemeResource SystemAccentColor}" />
-                            <Button Content="Dodaj do koszyka" 
+                            <Button Content="{x:Bind AvailabilityText}" 
                                     Command="{Binding DataContext.AddToCartCommand, ElementName=PageRoot}" 
                                     CommandParameter="{x:Bind}"
+                                    IsEnabled="{x:Bind IsInStock}"
                                     HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" />
                         </StackPanel>
                     </DataTemplate>
@@ -115,9 +116,10 @@
                         <TextBlock Text="{Binding SelectedProduct.Price, Converter={StaticResource PriceConverter}}" 
                                    Style="{StaticResource TitleTextBlockStyle}" Foreground="{ThemeResource SystemAccentColor}" />
                         
-                        <Button Content="Dodaj do koszyka" 
+                        <Button Content="{Binding SelectedProduct.AvailabilityText}" 
                                 Command="{Binding AddToCartCommand}" 
                                 CommandParameter="{Binding SelectedProduct}"
+                                IsEnabled="{Binding SelectedProduct.IsInStock}"
                                 HorizontalAlignment="Stretch" Style="{StaticResource AccentButtonStyle}" 
                                 Padding="10" />
 

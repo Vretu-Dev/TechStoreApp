@@ -154,6 +154,19 @@ namespace TechStoreApp.ViewModels
             try
             {
                 using var db = new TechStoreDbContext();
+                
+                // Validate stock one last time and prepare updates
+                foreach (var item in Items)
+                {
+                    var product = db.Products.Find(item.Product.ProductId);
+                    if (product == null || product.StockAmount < item.Quantity)
+                    {
+                        OrderMessage = $"Niestety produkt {item.Product.Name} nie jest już dostępny w wybranej ilości.";
+                        return;
+                    }
+                    product.StockAmount -= item.Quantity;
+                }
+
                 var order = new Order
                 {
                     CustomerId = AuthService.CurrentUser.CustomerId,

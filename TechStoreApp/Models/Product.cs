@@ -18,7 +18,21 @@ public partial class Product : ViewModels.BaseViewModel
     public decimal Price { get => _price; set => SetProperty(ref _price, value); }
 
     private int _stockAmount;
-    public int StockAmount { get => _stockAmount; set => SetProperty(ref _stockAmount, value); }
+    public int StockAmount 
+    { 
+        get => _stockAmount; 
+        set 
+        {
+            if (SetProperty(ref _stockAmount, value))
+            {
+                OnPropertyChanged(nameof(IsInStock));
+                OnPropertyChanged(nameof(AvailabilityText));
+            }
+        }
+    }
+
+    public bool IsInStock => StockAmount > 0;
+    public string AvailabilityText => IsInStock ? "Dodaj do koszyka" : "Brak Dostępności";
 
     private int _categoryId;
     public int CategoryId { get => _categoryId; set => SetProperty(ref _categoryId, value); }

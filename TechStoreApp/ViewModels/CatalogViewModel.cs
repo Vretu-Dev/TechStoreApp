@@ -88,8 +88,8 @@ namespace TechStoreApp.ViewModels
             }
         }
 
-        private double _minPrice = 0;
-        public double MinPrice
+        private double? _minPrice;
+        public double? MinPrice
         {
             get => _minPrice;
             set
@@ -101,8 +101,8 @@ namespace TechStoreApp.ViewModels
             }
         }
 
-        private double _maxPrice = 20000;
-        public double MaxPrice
+        private double? _maxPrice;
+        public double? MaxPrice
         {
             get => _maxPrice;
             set
@@ -179,8 +179,8 @@ namespace TechStoreApp.ViewModels
                 query = query.Where(p => categoryIds.Contains(p.CategoryId));
             }
 
-            decimal min = double.IsNaN(MinPrice) ? 0 : (decimal)MinPrice;
-            decimal max = double.IsNaN(MaxPrice) ? decimal.MaxValue : (decimal)MaxPrice;
+            decimal min = _minPrice == null || double.IsNaN(_minPrice.Value) ? 0 : (decimal)_minPrice.Value;
+            decimal max = _maxPrice == null || double.IsNaN(_maxPrice.Value) ? decimal.MaxValue : (decimal)_maxPrice.Value;
             query = query.Where(p => p.Price >= min && p.Price <= max);
 
             Products = new ObservableCollection<Product>(query.ToList());
@@ -189,6 +189,7 @@ namespace TechStoreApp.ViewModels
         private void DoAddToCart(Product? product)
         {
             if (product == null) return;
+            if (product.StockAmount <= 0) return;
             CartService.AddItem(product);
         }
     }

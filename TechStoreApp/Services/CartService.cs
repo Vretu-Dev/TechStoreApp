@@ -19,6 +19,8 @@ namespace TechStoreApp.Services
             get => _quantity; 
             set
             {
+                if (value < 1) value = 1;
+                if (Product != null && value > Product.StockAmount) value = Product.StockAmount;
                 if (SetProperty(ref _quantity, value))
                 {
                     OnPropertyChanged(nameof(TotalPrice));

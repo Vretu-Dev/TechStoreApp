@@ -37,12 +37,14 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="120" />
                             <ColumnDefinition Width="100" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Produkt" FontWeight="Bold" />
-                        <TextBlock Grid.Column="1" Text="Ilość" FontWeight="Bold" />
-                        <TextBlock Grid.Column="2" Text="Suma" FontWeight="Bold" />
+                        <TextBlock Grid.Column="1" Text="Cena" FontWeight="Bold" />
+                        <TextBlock Grid.Column="2" Text="Ilość" FontWeight="Bold" />
+                        <TextBlock Grid.Column="3" Text="Suma" FontWeight="Bold" />
                     </Grid>
                 </ListView.Header>
                 <ListView.ItemTemplate>
@@ -51,16 +53,24 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="120" />
                                 <ColumnDefinition Width="100" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock Text="{x:Bind Product.Name}" FontWeight="SemiBold" />
                                 <TextBlock Text="{x:Bind Product.Sku}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Gray" />
                             </StackPanel>
-                            <TextBlock Grid.Column="1" Text="{x:Bind Quantity}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="2" Text="{x:Bind TotalPrice, Converter={StaticResource PriceConverter}}" VerticalAlignment="Center" />
-                            <Button Grid.Column="3" 
+                            <TextBlock Grid.Column="1" Text="{x:Bind Product.Price, Converter={StaticResource PriceConverter}}" VerticalAlignment="Center" />
+                            <NumberBox Grid.Column="2" 
+                                       Value="{x:Bind Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                       Minimum="1" 
+                                       Maximum="{x:Bind Product.StockAmount}"
+                                       SpinButtonPlacementMode="Compact" 
+                                       VerticalAlignment="Center" 
+                                       Margin="0,0,20,0" />
+                            <TextBlock Grid.Column="3" Text="{x:Bind TotalPrice, Mode=OneWay, Converter={StaticResource PriceConverter}}" VerticalAlignment="Center" />
+                            <Button Grid.Column="4" 
                                     Command="{Binding DataContext.RemoveItemCommand, ElementName=PageRoot}" 
                                     CommandParameter="{x:Bind}" 
                                     Style="{StaticResource SubtleButtonStyle}">
