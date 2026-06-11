@@ -32,9 +32,12 @@ public partial class TechStoreDbContext : DbContext
     public virtual DbSet<Shipment> Shipments { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=TechStoreDB;Trusted_Connection=True;TrustServerCertificate=True;", 
-            options => options.EnableRetryOnFailure());
+    {
+        var folder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var dbPath = System.IO.Path.Combine(folder, "TechStoreApp", "TechStoreDB.db");
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(dbPath)!);
+        optionsBuilder.UseSqlite($"Data Source={dbPath}");
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,7 +57,7 @@ public partial class TechStoreDbContext : DbContext
             entity.HasIndex(e => e.Email, "UQ_Customers_Email").IsUnique();
 
             entity.Property(e => e.CustomerId).HasColumnName("CustomerID");
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.LastName).HasMaxLength(100);
@@ -67,7 +70,7 @@ public partial class TechStoreDbContext : DbContext
 
             entity.Property(e => e.OrderId).HasColumnName("OrderID");
             entity.Property(e => e.CustomerId).HasColumnName("CustomerID");
-            entity.Property(e => e.OrderDate).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.OrderDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .HasDefaultValue("Nowe");
