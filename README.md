@@ -35,27 +35,19 @@ Aplikacja została zaprojektowana w architekturze **WinUI 3** (Windows App SDK) 
 
 ## 🚀 Instalacja i Uruchomienie
 
-### Wymagania wstępne
-1.  Zainstalowany **.NET SDK** (zgodny z wersją używaną w projekcie).
-2.  Zainstalowany **SQL Server Express LocalDB** (wymagany do lokalnego działania bazy danych).
-3.  Zainstalowany **Windows App SDK** (komponenty środowiska uruchomieniowego są pakowane razem z aplikacją w trybie SelfContained).
+Aplikacja jest dystrybuowana jako **samodzielny plik wykonywalny (.exe)**, co oznacza, że nie wymaga instalacji, konfiguracji środowiska uruchomieniowego ani Microsoft Store.
 
-### Kompilacja do pliku .exe
-Aplikacja jest skonfigurowana do wydania jako samodzielny plik (Single File) bez pakowania do instalatora MSIX. Aby wygenerować gotowy do uruchomienia plik `.exe` dla architektury 64-bitowej, otwórz terminal (np. PowerShell) w głównym folderze i wpisz:
+### Jak zacząć?
+1. Przejdź do zakładki **[Releases]** (Wydania) na tej stronie.
+2. Pobierz najnowszą wersję pliku `TechStoreApp.exe`.
+3. Uruchom pobrany plik na komputerze z systemem Windows 10/11.
 
-```powershell
-dotnet publish TechStoreApp\TechStoreApp.csproj -p:PublishProfile=win-x64 -c Release
-```
+*Uwaga: Przy pierwszym uruchomieniu aplikacja automatycznie utworzy lokalną bazę danych i wypełni ją przykładowym asortymentem (baza SQLite / LocalDB wbudowana w środowisko). Może to zająć kilka sekund.*
 
-Gotowy plik `TechStoreApp.exe` znajdziesz w ścieżce:
-`TechStoreApp\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\`
-
-### Pierwsze uruchomienie
-Podczas pierwszego uruchomienia aplikacji (metoda `EnsureDatabaseCreatedAndSeeded`), system automatycznie wygeneruje bazę danych i wypełni ją danymi testowymi:
-*   Kategorie (Laptopy, Smartfony itp.)
-*   Przewoźnicy (DHL, InPost, DPD itp.)
-*   Przykładowe produkty (po 10 dla każdej kategorii)
-*   **Domyślne konto administratora**
+### Domyślne konto administratora
+Aplikacja od razu generuje konto, które pozwala na przetestowanie wszystkich funkcji:
+*   **Email:** `admin`
+*   **Hasło:** `admin`
 
 ---
 
