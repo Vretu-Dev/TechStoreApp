@@ -6,6 +6,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:TechStoreApp.Views"
     xmlns:vm="using:TechStoreApp.ViewModels"
+    xmlns:models="using:TechStoreApp.Models"
     xmlns:services="using:TechStoreApp.Services"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -24,57 +25,129 @@
 
         <TextBlock Grid.Row="0" Text="Twój Koszyk" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,20" />
 
-        <ListView Grid.Row="1" ItemsSource="{Binding Items}" SelectionMode="None">
-            <ListView.Header>
-                <Grid Padding="12,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="100" />
-                        <ColumnDefinition Width="100" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Produkt" FontWeight="Bold" />
-                    <TextBlock Grid.Column="1" Text="Ilość" FontWeight="Bold" />
-                    <TextBlock Grid.Column="2" Text="Suma" FontWeight="Bold" />
-                </Grid>
-            </ListView.Header>
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="services:CartItem">
-                    <Grid Padding="0,10">
+        <Grid Grid.Row="1" ColumnSpacing="30">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="350" />
+            </Grid.ColumnDefinitions>
+
+            <ListView Grid.Column="0" ItemsSource="{Binding Items}" SelectionMode="None">
+                <ListView.Header>
+                    <Grid Padding="12,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="100" />
                             <ColumnDefinition Width="100" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="{x:Bind Product.Name}" FontWeight="SemiBold" />
-                            <TextBlock Text="{x:Bind Product.Sku}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Gray" />
-                        </StackPanel>
-                        <TextBlock Grid.Column="1" Text="{x:Bind Quantity}" VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="2" Text="{x:Bind TotalPrice, Converter={StaticResource PriceConverter}}" VerticalAlignment="Center" />
-                        <Button Grid.Column="3" 
-                                Command="{Binding DataContext.RemoveItemCommand, ElementName=PageRoot}" 
-                                CommandParameter="{x:Bind}" 
-                                Style="{StaticResource SubtleButtonStyle}">
-                            <SymbolIcon Symbol="Delete" />
-                        </Button>
+                        <TextBlock Grid.Column="0" Text="Produkt" FontWeight="Bold" />
+                        <TextBlock Grid.Column="1" Text="Ilość" FontWeight="Bold" />
+                        <TextBlock Grid.Column="2" Text="Suma" FontWeight="Bold" />
                     </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                </ListView.Header>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="services:CartItem">
+                        <Grid Padding="0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{x:Bind Product.Name}" FontWeight="SemiBold" />
+                                <TextBlock Text="{x:Bind Product.Sku}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Gray" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="{x:Bind Quantity}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="2" Text="{x:Bind TotalPrice, Converter={StaticResource PriceConverter}}" VerticalAlignment="Center" />
+                            <Button Grid.Column="3" 
+                                    Command="{Binding DataContext.RemoveItemCommand, ElementName=PageRoot}" 
+                                    CommandParameter="{x:Bind}" 
+                                    Style="{StaticResource SubtleButtonStyle}">
+                                <SymbolIcon Symbol="Delete" />
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
 
-        <StackPanel Grid.Row="2" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
-            <TextBlock Text="{Binding TotalAmount, Converter={StaticResource PriceConverter}, ConverterParameter='Razem: '}" 
-                       Style="{StaticResource SubtitleTextBlockStyle}" HorizontalAlignment="Right" />
-            
-            <TextBlock Text="{Binding OrderMessage}" HorizontalAlignment="Right" 
-                       Foreground="{ThemeResource SystemAccentColor}" TextWrapping="Wrap" />
+            <ScrollViewer Grid.Column="1">
+                <StackPanel Spacing="15" Padding="5">
+                    <TextBlock Text="Dane do wysyłki" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    
+                    <TextBox Header="Adres (ulica i numer)" Text="{Binding ShippingAddress, Mode=TwoWay}" PlaceholderText="ul. Kwiatowa 1/2" />
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="2*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" Header="Kod pocztowy" Text="{Binding ShippingPostalCode, Mode=TwoWay}" PlaceholderText="00-000" />
+                        <TextBox Grid.Column="1" Header="Miasto" Text="{Binding ShippingCity, Mode=TwoWay}" PlaceholderText="Warszawa" />
+                    </Grid>
 
-            <Button Content="Złóż zamówienie" 
-                    Command="{Binding PlaceOrderCommand}" 
-                    Style="{StaticResource AccentButtonStyle}" 
-                    HorizontalAlignment="Right" Padding="30,10" />
-        </StackPanel>
+                    <TextBlock Text="Forma dostawy" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,10,0,0" />
+                    <ComboBox HorizontalAlignment="Stretch" 
+                              ItemsSource="{Binding Couriers}" 
+                              SelectedItem="{Binding SelectedCourier, Mode=TwoWay}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:Courier">
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{x:Bind Name}" />
+                                        <TextBlock Text="{x:Bind EstimatedDeliveryTime}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="Gray" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{x:Bind BaseShippingCost, Converter={StaticResource PriceConverter}}" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <TextBlock Text="Metoda płatności" Style="{StaticResource BodyStrongTextBlockStyle}" Margin="0,10,0,0" />
+                    <ComboBox HorizontalAlignment="Stretch" 
+                              ItemsSource="{Binding PaymentMethods}" 
+                              SelectedItem="{Binding SelectedPaymentMethod, Mode=TwoWay}" 
+                              PlaceholderText="Wybierz płatność" />
+
+                    <Border BorderBrush="{ThemeResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,1,0,0" Margin="0,10" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Produkty:" />
+                        <TextBlock Grid.Column="1" Text="{Binding TotalAmount, Converter={StaticResource PriceConverter}}" />
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Dostawa:" />
+                        <TextBlock Grid.Column="1" Text="{Binding SelectedCourier.BaseShippingCost, Converter={StaticResource PriceConverter}, FallbackValue='0,00 zł'}" />
+                    </Grid>
+                    <Grid Margin="0,5,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="RAZEM:" FontWeight="Bold" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock Grid.Column="1" Text="{Binding TotalWithShipping, Converter={StaticResource PriceConverter}}" FontWeight="Bold" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    </Grid>
+
+                    <Button Content="Złóż zamówienie" 
+                            Command="{Binding PlaceOrderCommand}" 
+                            Style="{StaticResource AccentButtonStyle}" 
+                            HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10" />
+                    
+                    <TextBlock Text="{Binding OrderMessage}" HorizontalAlignment="Center" 
+                               Foreground="{ThemeResource SystemAccentColor}" TextWrapping="Wrap" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Page>

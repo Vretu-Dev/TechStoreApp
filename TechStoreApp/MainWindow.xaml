@@ -14,14 +14,26 @@
     </Window.SystemBackdrop>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="45" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="AppTitleBar" Grid.Row="0" VerticalAlignment="Stretch" Background="Transparent">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                <TextBlock Text="Tech Store" VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" />
+            </StackPanel>
+        </Grid>
+
         <NavigationView x:Name="NavView" 
+                        Grid.Row="1"
                         Loaded="NavView_Loaded"
                         ItemInvoked="NavView_ItemInvoked"
                         IsBackButtonVisible="Collapsed"
                         PaneDisplayMode="Auto">
             <NavigationView.MenuItems>
                 <NavigationViewItem Tag="catalog" Icon="Shop" Content="Sklep" />
-                <NavigationViewItem Tag="cart" Icon="Shop" Content="Koszyk" />
+                <NavigationViewItem Tag="cart" Icon="OutlineStar" Content="Koszyk" />
                 <NavigationViewItem Tag="orders" Icon="Library" Content="Moje Zamówienia" />
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>

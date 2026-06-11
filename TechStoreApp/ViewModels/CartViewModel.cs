@@ -20,6 +20,59 @@ namespace TechStoreApp.ViewModels
             set => SetProperty(ref _orderMessage, value);
         }
 
+        private string _shippingAddress = string.Empty;
+        public string ShippingAddress
+        {
+            get => _shippingAddress;
+            set => SetProperty(ref _shippingAddress, value);
+        }
+
+        private string _shippingCity = string.Empty;
+        public string ShippingCity
+        {
+            get => _shippingCity;
+            set => SetProperty(ref _shippingCity, value);
+        }
+
+        private string _shippingPostalCode = string.Empty;
+        public string ShippingPostalCode
+        {
+            get => _shippingPostalCode;
+            set => SetProperty(ref _shippingPostalCode, value);
+        }
+
+        private ObservableCollection<Courier> _couriers = new();
+        public ObservableCollection<Courier> Couriers
+        {
+            get => _couriers;
+            set => SetProperty(ref _couriers, value);
+        }
+
+        private Courier? _selectedCourier;
+        public Courier? SelectedCourier
+        {
+            get => _selectedCourier;
+            set
+            {
+                if (SetProperty(ref _selectedCourier, value))
+                {
+                    OnPropertyChanged(nameof(TotalWithShipping));
+                }
+            }
+        }
+
+        public decimal TotalWithShipping => TotalAmount + (SelectedCourier?.BaseShippingCost ?? 0);
+
+        private ObservableCollection<string> _paymentMethods = new() { "Karta płatnicza", "Przelew bankowy", "BLIK", "Za pobraniem" };
+        public ObservableCollection<string> PaymentMethods => _paymentMethods;
+
+        private string? _selectedPaymentMethod;
+        public string? SelectedPaymentMethod
+        {
+            get => _selectedPaymentMethod;
+            set => SetProperty(ref _selectedPaymentMethod, value);
+        }
+
         public ICommand RemoveItemCommand { get; }
         public ICommand PlaceOrderCommand { get; }
 
@@ -27,13 +80,33 @@ namespace TechStoreApp.ViewModels
         {
             RemoveItemCommand = new RelayCommand(i => DoRemoveItem(i as CartItem));
             PlaceOrderCommand = new RelayCommand(_ => DoPlaceOrder());
+            LoadCouriers();
             CartService.StaticPropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(CartService.TotalAmount))
                 {
                     OnPropertyChanged(nameof(TotalAmount));
+                    OnPropertyChanged(nameof(TotalWithShipping));
                 }
             };
+        }
+
+        private void LoadCouriers()
+        {
+            try
+            {
+                using var db = new TechStoreDbContext();
+                var couriers = db.Couriers.ToList();
+                Couriers = new ObservableCollection<Courier>(couriers);
+                if (Couriers.Any())
+                {
+                    SelectedCourier = Couriers.First();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load couriers: {ex.Message}");
+            }
         }
 
         private void DoRemoveItem(CartItem? item)
@@ -58,6 +131,26 @@ namespace TechStoreApp.ViewModels
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(ShippingAddress) || 
+                string.IsNullOrWhiteSpace(ShippingCity) || 
+                string.IsNullOrWhiteSpace(ShippingPostalCode))
+            {
+                OrderMessage = "Proszę uzupełnić dane adresowe.";
+                return;
+            }
+
+            if (SelectedCourier == null)
+            {
+                OrderMessage = "Proszę wybrać formę dostawy.";
+                return;
+            }
+
+            if (string.IsNullOrEmpty(SelectedPaymentMethod))
+            {
+                OrderMessage = "Proszę wybrać formę płatności.";
+                return;
+            }
+
             try
             {
                 using var db = new TechStoreDbContext();
@@ -66,7 +159,12 @@ namespace TechStoreApp.ViewModels
                     CustomerId = AuthService.CurrentUser.CustomerId,
                     OrderDate = DateTime.Now,
                     Status = "Nowe",
-                    TotalAmount = TotalAmount
+                    TotalAmount = TotalWithShipping,
+                    ShippingAddress = ShippingAddress,
+                    ShippingCity = ShippingCity,
+                    ShippingPostalCode = ShippingPostalCode,
+                    ShippingMethod = SelectedCourier.Name,
+                    PaymentMethod = SelectedPaymentMethod
                 };
 
                 foreach (var item in Items)
@@ -82,8 +180,22 @@ namespace TechStoreApp.ViewModels
                 db.Orders.Add(order);
                 db.SaveChanges();
 
+                // Create a shipment entry as well
+                db.Shipments.Add(new Shipment
+                {
+                    OrderId = order.OrderId,
+                    CourierName = SelectedCourier.Name,
+                    TrackingNumber = "TBA" // To be assigned
+                });
+                db.SaveChanges();
+
                 CartService.Clear();
                 OrderMessage = "Zamówienie zostało złożone pomyślnie!";
+                
+                // Reset form
+                ShippingAddress = string.Empty;
+                ShippingCity = string.Empty;
+                ShippingPostalCode = string.Empty;
             }
             catch (Exception ex)
             {

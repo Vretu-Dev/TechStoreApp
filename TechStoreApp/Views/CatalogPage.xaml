@@ -21,19 +21,48 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Padding="0,0,0,20">
-            <AutoSuggestBox PlaceholderText="Szukaj produktów..." 
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <AutoSuggestBox Grid.Column="0" 
+                            PlaceholderText="Szukaj produktów..." 
                             Text="{Binding SearchText, Mode=TwoWay}" 
-                            Width="300" QueryIcon="Find" />
+                            Width="300" 
+                            QueryIcon="Find" 
+                            VerticalAlignment="Bottom" 
+                            Margin="0,0,10,0" />
             
-            <ComboBox PlaceholderText="Kategoria" 
+            <ComboBox Grid.Column="1" 
+                      PlaceholderText="Wszystkie kategorie" 
+                      Header="Kategoria"
                       ItemsSource="{Binding Categories}" 
                       SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
-                      DisplayMemberPath="Name" Width="200" />
+                      DisplayMemberPath="Name" 
+                      Width="200" 
+                      VerticalAlignment="Bottom" 
+                      Margin="0,0,10,0" />
 
-            <NumberBox Header="Min Cena" Value="{Binding MinPrice, Mode=TwoWay}" Width="100" SpinButtonPlacementMode="Compact" />
-            <NumberBox Header="Max Cena" Value="{Binding MaxPrice, Mode=TwoWay}" Width="100" SpinButtonPlacementMode="Compact" />
-        </StackPanel>
+            <NumberBox Grid.Column="2" 
+                       Header="Cena od" 
+                       Value="{Binding MinPrice, Mode=TwoWay}" 
+                       Width="120" 
+                       SpinButtonPlacementMode="Compact" 
+                       VerticalAlignment="Bottom" 
+                       Margin="0,0,10,0" />
+
+            <NumberBox Grid.Column="3" 
+                       Header="Cena do" 
+                       Value="{Binding MaxPrice, Mode=TwoWay}" 
+                       Width="120" 
+                       SpinButtonPlacementMode="Compact" 
+                       VerticalAlignment="Bottom" />
+        </Grid>
 
         <GridView Grid.Row="1" ItemsSource="{Binding Products}" SelectionMode="None">
             <GridView.ItemTemplate>

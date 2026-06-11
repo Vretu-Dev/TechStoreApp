@@ -15,6 +15,12 @@ public partial class Order
 
     public string Status { get; set; } = null!;
 
+    public string? ShippingAddress { get; set; }
+    public string? ShippingCity { get; set; }
+    public string? ShippingPostalCode { get; set; }
+    public string? ShippingMethod { get; set; }
+    public string? PaymentMethod { get; set; }
+
     public virtual Customer Customer { get; set; } = null!;
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();

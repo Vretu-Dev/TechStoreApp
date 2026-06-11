@@ -48,6 +48,8 @@ namespace TechStoreApp
 
             _window = new MainWindow();
             _window.Activate();
+
+            SettingsService.Initialize();
         }
 
         private void EnsureDatabaseCreatedAndSeeded()
@@ -87,6 +89,15 @@ namespace TechStoreApp
                         categories.Add(cat);
                     }
                     db.Categories.AddRange(categories);
+
+                    db.Couriers.AddRange(new List<Courier>
+                    {
+                        new Courier { Name = "DHL Express", BaseShippingCost = 15.00m, EstimatedDeliveryTime = "1-2 dni robocze" },
+                        new Courier { Name = "InPost Paczkomat", BaseShippingCost = 12.99m, EstimatedDeliveryTime = "1-2 dni robocze" },
+                        new Courier { Name = "InPost Kurier", BaseShippingCost = 14.99m, EstimatedDeliveryTime = "1-2 dni robocze" },
+                        new Courier { Name = "DPD", BaseShippingCost = 16.50m, EstimatedDeliveryTime = "1-3 dni robocze" },
+                        new Courier { Name = "Poczta Polska", BaseShippingCost = 11.00m, EstimatedDeliveryTime = "3-5 dni robocze" }
+                    });
 
                     var random = new Random();
                     foreach (var cat in categories)

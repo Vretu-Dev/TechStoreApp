@@ -17,6 +17,8 @@ public partial class TechStoreDbContext : DbContext
 
     public virtual DbSet<Category> Categories { get; set; }
 
+    public virtual DbSet<Courier> Couriers { get; set; }
+
     public virtual DbSet<Customer> Customers { get; set; }
 
     public virtual DbSet<Order> Orders { get; set; }
@@ -70,6 +72,11 @@ public partial class TechStoreDbContext : DbContext
                 .HasMaxLength(50)
                 .HasDefaultValue("Nowe");
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ShippingAddress).HasMaxLength(500);
+            entity.Property(e => e.ShippingCity).HasMaxLength(100);
+            entity.Property(e => e.ShippingPostalCode).HasMaxLength(20);
+            entity.Property(e => e.ShippingMethod).HasMaxLength(100);
+            entity.Property(e => e.PaymentMethod).HasMaxLength(100);
 
             entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.CustomerId)
@@ -142,6 +149,14 @@ public partial class TechStoreDbContext : DbContext
             entity.HasOne(d => d.Order).WithMany(p => p.Shipments)
                 .HasForeignKey(d => d.OrderId)
                 .HasConstraintName("FK_Shipments_Orders");
+        });
+
+        modelBuilder.Entity<Courier>(entity =>
+        {
+            entity.HasKey(e => e.CourierId);
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.BaseShippingCost).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.EstimatedDeliveryTime).HasMaxLength(100);
         });
 
         OnModelCreatingPartial(modelBuilder);

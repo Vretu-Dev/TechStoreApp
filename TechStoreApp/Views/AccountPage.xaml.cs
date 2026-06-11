@@ -8,14 +8,14 @@ namespace TechStoreApp.Views
         public AccountPage()
         {
             this.InitializeComponent();
-            ViewModel.LogoutRequested += ViewModel_LogoutRequested;
-        }
-
-        private void ViewModel_LogoutRequested()
-        {
-            var mainWindow = (Application.Current as App)?.GetMainWindow() as MainWindow;
-            mainWindow?.UpdateAuthUI();
-            Frame.Navigate(typeof(CatalogPage));
+            ViewModel.LogoutRequested += () =>
+            {
+                if (App.Current is App app && app.GetMainWindow() is MainWindow mainWindow)
+                {
+                    mainWindow.UpdateAuthUI();
+                    Frame.Navigate(typeof(LoginPage));
+                }
+            };
         }
     }
 }

@@ -25,6 +25,9 @@ namespace TechStoreApp
         public MainWindow()
         {
             InitializeComponent();
+            ExtendsContentIntoTitleBar = true;
+            SetTitleBar(AppTitleBar);
+            Title = "Tech Store App";
         }
 
         private void NavView_Loaded(object sender, RoutedEventArgs e)
@@ -36,6 +39,12 @@ namespace TechStoreApp
 
         private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
+            if (args.IsSettingsInvoked)
+            {
+                ContentFrame.Navigate(typeof(SettingsPage));
+                return;
+            }
+
             if (args.InvokedItemContainer != null)
             {
                 var tag = args.InvokedItemContainer.Tag?.ToString();
@@ -63,6 +72,9 @@ namespace TechStoreApp
                         {
                             ContentFrame.Navigate(typeof(AccountPage));
                         }
+                        break;
+                    case "settings":
+                        ContentFrame.Navigate(typeof(SettingsPage));
                         break;
                 }
             }
