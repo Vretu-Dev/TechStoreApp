@@ -114,6 +114,20 @@ namespace TechStoreApp.ViewModels
             }
         }
 
+        private bool _isAddToCartNotificationOpen;
+        public bool IsAddToCartNotificationOpen
+        {
+            get => _isAddToCartNotificationOpen;
+            set => SetProperty(ref _isAddToCartNotificationOpen, value);
+        }
+
+        private string _lastAddedProductName = string.Empty;
+        public string LastAddedProductName
+        {
+            get => _lastAddedProductName;
+            set => SetProperty(ref _lastAddedProductName, value);
+        }
+
         public ICommand AddToCartCommand { get; }
         public ICommand ClearParentCategoryCommand { get; }
         public ICommand ClearSubCategoryCommand { get; }
@@ -194,11 +208,18 @@ namespace TechStoreApp.ViewModels
             Products = new ObservableCollection<Product>(query.ToList());
         }
 
-        private void DoAddToCart(Product? product)
+        private async void DoAddToCart(Product? product)
         {
             if (product == null) return;
             if (product.StockAmount <= 0) return;
             CartService.AddItem(product);
+
+            LastAddedProductName = product.Name;
+            IsAddToCartNotificationOpen = true;
+
+            // Auto-close notification after 2 seconds
+            await System.Threading.Tasks.Task.Delay(2000);
+            IsAddToCartNotificationOpen = false;
         }
     }
 }

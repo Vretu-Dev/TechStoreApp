@@ -46,7 +46,17 @@ namespace TechStoreApp.ViewModels
                         EditProductSku = value.Sku;
                         EditProductPrice = (double)value.Price;
                         EditProductStock = value.StockAmount;
+                        EditProductDescription = value.Description ?? string.Empty;
                         SelectedEditCategory = Categories.FirstOrDefault(c => c.CategoryId == value.CategoryId);
+
+                        // Load attributes
+                        using var db = new TechStoreDbContext();
+                        var attrs = db.ProductAttributes.Where(a => a.ProductId == value.ProductId).ToList();
+                        EditProductAttributes = new ObservableCollection<ProductAttribute>(attrs);
+                    }
+                    else
+                    {
+                        EditProductAttributes.Clear();
                     }
                 }
             }
@@ -63,6 +73,12 @@ namespace TechStoreApp.ViewModels
         
         private int _editProductStock;
         public int EditProductStock { get => _editProductStock; set => SetProperty(ref _editProductStock, value); }
+
+        private string _editProductDescription = string.Empty;
+        public string EditProductDescription { get => _editProductDescription; set => SetProperty(ref _editProductDescription, value); }
+
+        private ObservableCollection<ProductAttribute> _editProductAttributes = new();
+        public ObservableCollection<ProductAttribute> EditProductAttributes { get => _editProductAttributes; set => SetProperty(ref _editProductAttributes, value); }
 
         private string _errorMessage = string.Empty;
         public string ErrorMessage { get => _errorMessage; set => SetProperty(ref _errorMessage, value); }
@@ -147,6 +163,8 @@ namespace TechStoreApp.ViewModels
         public ICommand ResetPasswordCommand { get; }
         public ICommand DeleteOrderCommand { get; }
         public ICommand ChangeOrderStatusCommand { get; }
+        public ICommand AddEditAttributeCommand { get; }
+        public ICommand RemoveEditAttributeCommand { get; }
 
         // --- WIZARD PROPERTIES ---
         private bool _isWizardOpen;
@@ -215,6 +233,9 @@ namespace TechStoreApp.ViewModels
             AddCategoryCommand = new RelayCommand(_ => DoAddCategory());
             DeleteCategoryCommand = new RelayCommand(_ => DoDeleteCategory());
             ClearParentCategoryCommand = new RelayCommand(_ => SelectedParentCategory = null);
+
+            AddEditAttributeCommand = new RelayCommand(_ => EditProductAttributes.Add(new ProductAttribute { KeyName = "Nowa cecha", Value = "Wartość" }));
+            RemoveEditAttributeCommand = new RelayCommand(a => { if (a is ProductAttribute attr) EditProductAttributes.Remove(attr); });
 
             OpenWizardCommand = new RelayCommand(_ => DoOpenWizard());
             CloseWizardCommand = new RelayCommand(_ => IsWizardOpen = false);
@@ -469,7 +490,7 @@ namespace TechStoreApp.ViewModels
                 return;
             }
 
-            var product = db.Products.Find(SelectedProduct.ProductId);
+            var product = db.Products.Include(p => p.ProductAttributes).FirstOrDefault(p => p.ProductId == SelectedProduct.ProductId);
             if (product != null)
             {
                 product.Name = EditProductName;
@@ -477,6 +498,20 @@ namespace TechStoreApp.ViewModels
                 product.Price = (decimal)EditProductPrice;
                 product.StockAmount = EditProductStock;
                 product.CategoryId = SelectedEditCategory.CategoryId;
+                product.Description = EditProductDescription;
+
+                // Sync attributes
+                db.ProductAttributes.RemoveRange(product.ProductAttributes);
+                foreach (var attr in EditProductAttributes)
+                {
+                    db.ProductAttributes.Add(new ProductAttribute
+                    {
+                        ProductId = product.ProductId,
+                        KeyName = attr.KeyName,
+                        Value = attr.Value
+                    });
+                }
+
                 db.SaveChanges();
                 
                 var savedId = product.ProductId;
@@ -511,8 +546,19 @@ namespace TechStoreApp.ViewModels
                 Sku = EditProductSku,
                 Price = (decimal)EditProductPrice,
                 StockAmount = EditProductStock,
-                CategoryId = SelectedEditCategory.CategoryId
+                CategoryId = SelectedEditCategory.CategoryId,
+                Description = EditProductDescription
             };
+
+            foreach (var attr in EditProductAttributes)
+            {
+                product.ProductAttributes.Add(new ProductAttribute
+                {
+                    KeyName = attr.KeyName,
+                    Value = attr.Value
+                });
+            }
+
             db.Products.Add(product);
             db.SaveChanges();
             LoadData();
@@ -522,6 +568,8 @@ namespace TechStoreApp.ViewModels
             EditProductSku = string.Empty;
             EditProductPrice = 0;
             EditProductStock = 0;
+            EditProductDescription = string.Empty;
+            EditProductAttributes.Clear();
         }
 
         private void DoDeleteProduct()

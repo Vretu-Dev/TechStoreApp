@@ -14,6 +14,25 @@
     </Window.SystemBackdrop>
 
     <Grid>
+        <Grid.Resources>
+            <Storyboard x:Name="PopStoryboard">
+                <DoubleAnimation Storyboard.TargetName="CartBadgeScale" 
+                                 Storyboard.TargetProperty="ScaleX"
+                                 From="1.0" To="1.4" Duration="0:0:0.1" AutoReverse="True">
+                    <DoubleAnimation.EasingFunction>
+                        <CircleEase EasingMode="EaseOut" />
+                    </DoubleAnimation.EasingFunction>
+                </DoubleAnimation>
+                <DoubleAnimation Storyboard.TargetName="CartBadgeScale" 
+                                 Storyboard.TargetProperty="ScaleY"
+                                 From="1.0" To="1.4" Duration="0:0:0.1" AutoReverse="True">
+                    <DoubleAnimation.EasingFunction>
+                        <CircleEase EasingMode="EaseOut" />
+                    </DoubleAnimation.EasingFunction>
+                </DoubleAnimation>
+            </Storyboard>
+        </Grid.Resources>
+
         <Grid.RowDefinitions>
             <RowDefinition Height="45" />
             <RowDefinition Height="*" />
@@ -33,7 +52,15 @@
                         PaneDisplayMode="Auto">
             <NavigationView.MenuItems>
                 <NavigationViewItem Tag="catalog" Icon="Shop" Content="Sklep" />
-                <NavigationViewItem Tag="cart" Icon="OutlineStar" Content="Koszyk" />
+                <NavigationViewItem x:Name="CartNavItem" Tag="cart" Icon="OutlineStar" Content="Koszyk">
+                    <NavigationViewItem.InfoBadge>
+                        <InfoBadge x:Name="CartBadge" Visibility="Collapsed" RenderTransformOrigin="0.5,0.5">
+                            <InfoBadge.RenderTransform>
+                                <ScaleTransform x:Name="CartBadgeScale" />
+                            </InfoBadge.RenderTransform>
+                        </InfoBadge>
+                    </NavigationViewItem.InfoBadge>
+                </NavigationViewItem>
                 <NavigationViewItem Tag="orders" Icon="Library" Content="Moje Zamówienia" />
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>

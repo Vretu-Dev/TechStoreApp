@@ -28,6 +28,32 @@ namespace TechStoreApp
             ExtendsContentIntoTitleBar = true;
             SetTitleBar(AppTitleBar);
             Title = "Tech Store App";
+
+            CartService.StaticPropertyChanged += CartService_StaticPropertyChanged;
+            UpdateCartBadge();
+        }
+
+        private void CartService_StaticPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(CartService.TotalItemsCount))
+            {
+                DispatcherQueue.TryEnqueue(() => UpdateCartBadge());
+            }
+        }
+
+        private void UpdateCartBadge()
+        {
+            int count = CartService.TotalItemsCount;
+            if (count > 0)
+            {
+                CartBadge.Value = count;
+                CartBadge.Visibility = Visibility.Visible;
+                PopStoryboard.Begin();
+            }
+            else
+            {
+                CartBadge.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void NavView_Loaded(object sender, RoutedEventArgs e)

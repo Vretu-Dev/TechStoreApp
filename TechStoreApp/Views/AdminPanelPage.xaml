@@ -61,24 +61,56 @@
                         </ListView>
                     </Grid>
 
-                    <StackPanel Grid.Column="1" Spacing="10" Padding="10" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="4">
-                        <TextBlock Text="Szczegóły Produktu" Style="{StaticResource SubtitleTextBlockStyle}" />
-                        <TextBox Header="Nazwa" Text="{Binding EditProductName, Mode=TwoWay}" />
-                        <TextBox Header="SKU" Text="{Binding EditProductSku, Mode=TwoWay}" />
-                        <NumberBox Header="Cena" Value="{Binding EditProductPrice, Mode=TwoWay}" SpinButtonPlacementMode="Compact" />
-                        <NumberBox Header="Stan magazynowy" Value="{Binding EditProductStock, Mode=TwoWay}" SpinButtonPlacementMode="Compact" />
-                        <ComboBox Header="Kategoria" ItemsSource="{Binding Categories}" 
-                                  SelectedItem="{Binding SelectedEditCategory, Mode=TwoWay}"
-                                  DisplayMemberPath="Name" HorizontalAlignment="Stretch" />
-                        
-                        <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" TextWrapping="Wrap" />
+                    <ScrollViewer Grid.Column="1" Padding="10" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="4">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Szczegóły Produktu" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <TextBox Header="Nazwa" Text="{Binding EditProductName, Mode=TwoWay}" />
+                            <TextBox Header="SKU" Text="{Binding EditProductSku, Mode=TwoWay}" />
+                            <NumberBox Header="Cena" Value="{Binding EditProductPrice, Mode=TwoWay}" SpinButtonPlacementMode="Compact" />
+                            <NumberBox Header="Stan magazynowy" Value="{Binding EditProductStock, Mode=TwoWay}" SpinButtonPlacementMode="Compact" />
+                            <ComboBox Header="Kategoria" ItemsSource="{Binding Categories}" 
+                                      SelectedItem="{Binding SelectedEditCategory, Mode=TwoWay}"
+                                      DisplayMemberPath="Name" HorizontalAlignment="Stretch" />
 
-                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,10,0,0">
-                            <Button Content="Zapisz Zmiany" Command="{Binding SaveProductCommand}" Style="{StaticResource AccentButtonStyle}" />
-                            <Button Content="Kreator dodawania produktu" Command="{Binding OpenWizardCommand}" />
-                            <Button Content="Usuń" Command="{Binding DeleteProductCommand}" Foreground="Red" />
+                            <TextBox Header="Opis" Text="{Binding EditProductDescription, Mode=TwoWay}" 
+                                     TextWrapping="Wrap" AcceptsReturn="True" Height="100" />
+
+                            <TextBlock Text="Specyfikacja (Atrybuty)" FontWeight="Bold" Margin="0,10,0,0" />
+                            <ItemsControl ItemsSource="{Binding EditProductAttributes}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ProductAttribute">
+                                        <Grid ColumnSpacing="10" Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" PlaceholderText="Cecha" Text="{x:Bind KeyName, Mode=TwoWay}" />
+                                            <TextBox Grid.Column="1" PlaceholderText="Wartość" Text="{x:Bind Value, Mode=TwoWay}" />
+                                            <Button Grid.Column="2" Content="X" 
+                                                    Command="{Binding DataContext.RemoveEditAttributeCommand, ElementName=PageRoot}" 
+                                                    CommandParameter="{x:Bind}" Foreground="Red" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Button Content="Dodaj Atrybut" Command="{Binding AddEditAttributeCommand}" HorizontalAlignment="Stretch" />
+
+                            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" TextWrapping="Wrap" />
+
+                            <StackPanel Orientation="Vertical" Spacing="10" Margin="0,10,0,0">
+                                <Button Content="Zapisz Zmiany" Command="{Binding SaveProductCommand}" Style="{StaticResource AccentButtonStyle}" HorizontalAlignment="Stretch" />
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Content="Kreator" Command="{Binding OpenWizardCommand}" HorizontalAlignment="Stretch" />
+                                    <Button Grid.Column="1" Content="Usuń" Command="{Binding DeleteProductCommand}" Foreground="Red" HorizontalAlignment="Stretch" />
+                                </Grid>
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
+                    </ScrollViewer>
                 </Grid>
             </PivotItem>
 

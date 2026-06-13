@@ -73,6 +73,27 @@ namespace TechStoreApp.ViewModels
             set => SetProperty(ref _selectedPaymentMethod, value);
         }
 
+        private bool _isOrderNotificationOpen;
+        public bool IsOrderNotificationOpen
+        {
+            get => _isOrderNotificationOpen;
+            set => SetProperty(ref _isOrderNotificationOpen, value);
+        }
+
+        private Microsoft.UI.Xaml.Controls.InfoBarSeverity _orderNotificationSeverity = Microsoft.UI.Xaml.Controls.InfoBarSeverity.Informational;
+        public Microsoft.UI.Xaml.Controls.InfoBarSeverity OrderNotificationSeverity
+        {
+            get => _orderNotificationSeverity;
+            set => SetProperty(ref _orderNotificationSeverity, value);
+        }
+
+        private string _orderNotificationTitle = string.Empty;
+        public string OrderNotificationTitle
+        {
+            get => _orderNotificationTitle;
+            set => SetProperty(ref _orderNotificationTitle, value);
+        }
+
         public ICommand RemoveItemCommand { get; }
         public ICommand PlaceOrderCommand { get; }
 
@@ -117,17 +138,36 @@ namespace TechStoreApp.ViewModels
             }
         }
 
+        private void ShowNotification(string title, string message, Microsoft.UI.Xaml.Controls.InfoBarSeverity severity, bool autoClose = false)
+        {
+            OrderNotificationTitle = title;
+            OrderMessage = message;
+            OrderNotificationSeverity = severity;
+            IsOrderNotificationOpen = true;
+
+            if (autoClose)
+            {
+                System.Threading.Tasks.Task.Run(async () =>
+                {
+                    await System.Threading.Tasks.Task.Delay(5000);
+                    IsOrderNotificationOpen = false;
+                });
+            }
+        }
+
         private void DoPlaceOrder()
         {
+            IsOrderNotificationOpen = false;
+
             if (AuthService.CurrentUser == null)
             {
-                OrderMessage = "Musisz się zalogować, aby złożyć zamówienie.";
+                ShowNotification("Błąd", "Musisz się zalogować, aby złożyć zamówienie.", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error);
                 return;
             }
 
             if (!Items.Any())
             {
-                OrderMessage = "Twój koszyk jest pusty.";
+                ShowNotification("Błąd", "Twój koszyk jest pusty.", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning);
                 return;
             }
 
@@ -135,19 +175,19 @@ namespace TechStoreApp.ViewModels
                 string.IsNullOrWhiteSpace(ShippingCity) || 
                 string.IsNullOrWhiteSpace(ShippingPostalCode))
             {
-                OrderMessage = "Proszę uzupełnić dane adresowe.";
+                ShowNotification("Błąd", "Proszę uzupełnić dane adresowe.", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning);
                 return;
             }
 
             if (SelectedCourier == null)
             {
-                OrderMessage = "Proszę wybrać formę dostawy.";
+                ShowNotification("Błąd", "Proszę wybrać formę dostawy.", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning);
                 return;
             }
 
             if (string.IsNullOrEmpty(SelectedPaymentMethod))
             {
-                OrderMessage = "Proszę wybrać formę płatności.";
+                ShowNotification("Błąd", "Proszę wybrać formę płatności.", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning);
                 return;
             }
 
@@ -161,7 +201,7 @@ namespace TechStoreApp.ViewModels
                     var product = db.Products.Find(item.Product.ProductId);
                     if (product == null || product.StockAmount < item.Quantity)
                     {
-                        OrderMessage = $"Niestety produkt {item.Product.Name} nie jest już dostępny w wybranej ilości.";
+                        ShowNotification("Błąd dostępności", $"Niestety produkt {item.Product.Name} nie jest już dostępny w wybranej ilości.", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error);
                         return;
                     }
                     product.StockAmount -= item.Quantity;
@@ -208,7 +248,7 @@ namespace TechStoreApp.ViewModels
                 db.SaveChanges();
 
                 CartService.Clear();
-                OrderMessage = "Zamówienie zostało złożone pomyślnie!";
+                ShowNotification("Sukces", "Zamówienie zostało złożone pomyślnie!", Microsoft.UI.Xaml.Controls.InfoBarSeverity.Success, true);
                 
                 // Reset form
                 ShippingAddress = string.Empty;
@@ -217,7 +257,7 @@ namespace TechStoreApp.ViewModels
             }
             catch (Exception ex)
             {
-                OrderMessage = "Błąd podczas składania zamówienia: " + ex.Message;
+                ShowNotification("Błąd krytyczny", "Błąd podczas składania zamówienia: " + ex.Message, Microsoft.UI.Xaml.Controls.InfoBarSeverity.Error);
             }
         }
     }

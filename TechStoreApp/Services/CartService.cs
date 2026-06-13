@@ -66,6 +66,7 @@ namespace TechStoreApp.Services
         private static void NotifyTotalChanged()
         {
             StaticPropertyChanged?.Invoke(null, new System.ComponentModel.PropertyChangedEventArgs(nameof(TotalAmount)));
+            StaticPropertyChanged?.Invoke(null, new System.ComponentModel.PropertyChangedEventArgs(nameof(TotalItemsCount)));
         }
 
         public static void AddItem(Product product)
@@ -92,5 +93,6 @@ namespace TechStoreApp.Services
         }
 
         public static decimal TotalAmount => Items.Sum(i => i.TotalPrice);
+        public static int TotalItemsCount => Items.Sum(i => i.Quantity);
     }
 }

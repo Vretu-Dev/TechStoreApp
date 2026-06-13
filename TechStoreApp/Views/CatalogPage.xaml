@@ -16,12 +16,27 @@
     </Page.DataContext>
 
     <Grid>
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <EntranceThemeTransition />
+                <RepositionThemeTransition />
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
+
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="0,0,0,20">
+        <InfoBar Grid.Row="0" 
+                 Title="Dodano do koszyka" 
+                 Message="{Binding LastAddedProductName}" 
+                 IsOpen="{Binding IsAddToCartNotificationOpen, Mode=TwoWay}" 
+                 Severity="Success" 
+                 Margin="0,0,0,10" />
+
+        <Grid Grid.Row="1" Margin="0,0,0,20">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -81,7 +96,7 @@
                        VerticalAlignment="Bottom" />
         </Grid>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="350" />

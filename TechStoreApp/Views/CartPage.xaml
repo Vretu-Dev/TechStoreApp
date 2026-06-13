@@ -17,15 +17,30 @@
     </Page.DataContext>
 
     <Grid Padding="20">
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <EntranceThemeTransition />
+                <RepositionThemeTransition />
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
+
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Twój Koszyk" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,20" />
+        <TextBlock Grid.Row="0" Text="Twój Koszyk" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,10" />
 
-        <Grid Grid.Row="1" ColumnSpacing="30">
+        <InfoBar Grid.Row="1" 
+                 Title="{Binding OrderNotificationTitle}" 
+                 Message="{Binding OrderMessage}" 
+                 IsOpen="{Binding IsOrderNotificationOpen, Mode=TwoWay}" 
+                 Severity="{Binding OrderNotificationSeverity}" 
+                 Margin="0,0,0,20" />
+
+        <Grid Grid.Row="2" ColumnSpacing="30">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="350" />
@@ -153,9 +168,6 @@
                             Command="{Binding PlaceOrderCommand}" 
                             Style="{StaticResource AccentButtonStyle}" 
                             HorizontalAlignment="Stretch" Margin="0,10,0,0" Padding="0,10" />
-                    
-                    <TextBlock Text="{Binding OrderMessage}" HorizontalAlignment="Center" 
-                               Foreground="{ThemeResource SystemAccentColor}" TextWrapping="Wrap" />
                 </StackPanel>
             </ScrollViewer>
         </Grid>
