@@ -18,6 +18,44 @@ namespace TechStoreApp.ViewModels
             }
         }
 
+        private int _selectedDatabaseModeIndex = SettingsService.IsLocalDatabase ? 0 : 1;
+        public int SelectedDatabaseModeIndex
+        {
+            get => _selectedDatabaseModeIndex;
+            set
+            {
+                if (SetProperty(ref _selectedDatabaseModeIndex, value))
+                {
+                    SettingsService.IsLocalDatabase = value == 0;
+                    OnPropertyChanged(nameof(ExternalConnectionVisibility));
+                    IsRestartRequired = true;
+                }
+            }
+        }
+
+        public Visibility ExternalConnectionVisibility => SelectedDatabaseModeIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+
+        private string _externalConnectionString = SettingsService.ExternalConnectionString;
+        public string ExternalConnectionString
+        {
+            get => _externalConnectionString;
+            set
+            {
+                if (SetProperty(ref _externalConnectionString, value))
+                {
+                    SettingsService.ExternalConnectionString = value;
+                    IsRestartRequired = true;
+                }
+            }
+        }
+
+        private bool _isRestartRequired;
+        public bool IsRestartRequired
+        {
+            get => _isRestartRequired;
+            set => SetProperty(ref _isRestartRequired, value);
+        }
+
         public SettingsViewModel()
         {
         }

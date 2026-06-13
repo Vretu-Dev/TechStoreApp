@@ -345,26 +345,27 @@ namespace TechStoreApp.ViewModels
         private void LoadData()
         {
             using var db = new TechStoreDbContext();
-            var products = db.Products.Include(p => p.Category).ToList();
-            var users = db.Customers.ToList();
             Categories = new ObservableCollection<Category>(db.Categories.ToList());
             
-            _allProducts = products;
-            _allUsers = users;
             ApplySort();
             ApplyUserFilter();
         }
 
         private void ApplyUserFilter()
         {
-            var filtered = string.IsNullOrWhiteSpace(UserSearchText) 
-                ? _allUsers 
-                : _allUsers.Where(u => 
-                    (u.Email?.Contains(UserSearchText, StringComparison.OrdinalIgnoreCase) ?? false) || 
-                    (u.FirstName?.Contains(UserSearchText, StringComparison.OrdinalIgnoreCase) ?? false) || 
-                    (u.LastName?.Contains(UserSearchText, StringComparison.OrdinalIgnoreCase) ?? false));
+            using var db = new TechStoreDbContext();
+            IQueryable<Customer> query = db.Customers;
+
+            if (!string.IsNullOrWhiteSpace(UserSearchText))
+            {
+                var lowerSearchText = UserSearchText.ToLower();
+                query = query.Where(u => 
+                    u.Email.ToLower().Contains(lowerSearchText) || 
+                    u.FirstName.ToLower().Contains(lowerSearchText) || 
+                    u.LastName.ToLower().Contains(lowerSearchText));
+            }
             
-            Users = new ObservableCollection<Customer>(filtered);
+            Users = new ObservableCollection<Customer>(query.ToList());
         }
 
         private void LoadUserOrders()
@@ -429,26 +430,29 @@ namespace TechStoreApp.ViewModels
             }
         }
 
-        private List<Product> _allProducts = new();
-        private List<Customer> _allUsers = new();
-
         private void ApplySort()
         {
-            var filtered = string.IsNullOrWhiteSpace(ProductSearchText)
-                ? _allProducts
-                : _allProducts.Where(p => 
-                    (p.Name?.Contains(ProductSearchText, StringComparison.OrdinalIgnoreCase) ?? false) || 
-                    (p.Sku?.Contains(ProductSearchText, StringComparison.OrdinalIgnoreCase) ?? false));
+            using var db = new TechStoreDbContext();
+            IQueryable<Product> query = db.Products.Include(p => p.Category);
 
-            IEnumerable<Product> sorted = SelectedSort switch
+            if (!string.IsNullOrWhiteSpace(ProductSearchText))
             {
-                "SKU" => filtered.OrderBy(p => p.Sku),
-                "Cena (rosnąco)" => filtered.OrderBy(p => p.Price),
-                "Cena (malejąco)" => filtered.OrderByDescending(p => p.Price),
-                "Stan" => filtered.OrderByDescending(p => p.StockAmount),
-                _ => filtered.OrderBy(p => p.Name)
+                var lowerSearchText = ProductSearchText.ToLower();
+                query = query.Where(p => 
+                    p.Name.ToLower().Contains(lowerSearchText) || 
+                    p.Sku.ToLower().Contains(lowerSearchText));
+            }
+
+            query = SelectedSort switch
+            {
+                "SKU" => query.OrderBy(p => p.Sku),
+                "Cena (rosnąco)" => query.OrderBy(p => p.Price),
+                "Cena (malejąco)" => query.OrderByDescending(p => p.Price),
+                "Stan" => query.OrderByDescending(p => p.StockAmount),
+                _ => query.OrderBy(p => p.Name)
             };
-            Products = new ObservableCollection<Product>(sorted);
+            
+            Products = new ObservableCollection<Product>(query.ToList());
         }
 
         private void DoSaveProduct()

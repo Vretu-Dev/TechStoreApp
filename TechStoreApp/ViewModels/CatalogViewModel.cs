@@ -179,9 +179,17 @@ namespace TechStoreApp.ViewModels
                 query = query.Where(p => categoryIds.Contains(p.CategoryId));
             }
 
-            decimal min = _minPrice == null || double.IsNaN(_minPrice.Value) ? 0 : (decimal)_minPrice.Value;
-            decimal max = _maxPrice == null || double.IsNaN(_maxPrice.Value) ? decimal.MaxValue : (decimal)_maxPrice.Value;
-            query = query.Where(p => p.Price >= min && p.Price <= max);
+            if (_minPrice != null && !double.IsNaN(_minPrice.Value))
+            {
+                decimal min = (decimal)_minPrice.Value;
+                query = query.Where(p => p.Price >= min);
+            }
+
+            if (_maxPrice != null && !double.IsNaN(_maxPrice.Value))
+            {
+                decimal max = (decimal)_maxPrice.Value;
+                query = query.Where(p => p.Price <= max);
+            }
 
             Products = new ObservableCollection<Product>(query.ToList());
         }

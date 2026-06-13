@@ -33,10 +33,28 @@ public partial class TechStoreDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var folder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var dbPath = System.IO.Path.Combine(folder, "TechStoreApp", "TechStoreDB.db");
-        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(dbPath)!);
-        optionsBuilder.UseSqlite($"Data Source={dbPath}");
+        if (TechStoreApp.Services.SettingsService.IsLocalDatabase)
+        {
+            var folder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var dbPath = System.IO.Path.Combine(folder, "TechStoreApp", "TechStoreDB.db");
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(dbPath)!);
+            optionsBuilder.UseSqlite($"Data Source={dbPath}");
+        }
+        else
+        {
+            var connStr = TechStoreApp.Services.SettingsService.ExternalConnectionString;
+            if (string.IsNullOrWhiteSpace(connStr))
+            {
+                var folder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var dbPath = System.IO.Path.Combine(folder, "TechStoreApp", "TechStoreDB.db");
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(dbPath)!);
+                optionsBuilder.UseSqlite($"Data Source={dbPath}");
+            }
+            else
+            {
+                optionsBuilder.UseSqlServer(connStr);
+            }
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

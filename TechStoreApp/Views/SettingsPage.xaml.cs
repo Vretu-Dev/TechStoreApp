@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace TechStoreApp.Views
@@ -7,6 +8,11 @@ namespace TechStoreApp.Views
         public SettingsPage()
         {
             this.InitializeComponent();
+        }
+
+        private void RestartButtonClicked(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Windows.AppLifecycle.AppInstance.Restart("");
         }
     }
 }

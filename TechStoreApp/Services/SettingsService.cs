@@ -10,6 +10,67 @@ namespace TechStoreApp.Services
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
             "TechStoreApp", "theme.txt");
 
+        private static readonly string DbModePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
+            "TechStoreApp", "db_mode.txt");
+
+        private static readonly string DbConnPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), 
+            "TechStoreApp", "db_conn.txt");
+
+        public static bool IsLocalDatabase
+        {
+            get
+            {
+                try
+                {
+                    if (File.Exists(DbModePath))
+                    {
+                        var val = File.ReadAllText(DbModePath);
+                        if (bool.TryParse(val, out var isLocal)) return isLocal;
+                    }
+                }
+                catch { }
+                return true;
+            }
+            set
+            {
+                try
+                {
+                    var dir = Path.GetDirectoryName(DbModePath);
+                    if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+                    File.WriteAllText(DbModePath, value.ToString());
+                }
+                catch { }
+            }
+        }
+
+        public static string ExternalConnectionString
+        {
+            get
+            {
+                try
+                {
+                    if (File.Exists(DbConnPath))
+                    {
+                        return File.ReadAllText(DbConnPath);
+                    }
+                }
+                catch { }
+                return string.Empty;
+            }
+            set
+            {
+                try
+                {
+                    var dir = Path.GetDirectoryName(DbConnPath);
+                    if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+                    File.WriteAllText(DbConnPath, value ?? string.Empty);
+                }
+                catch { }
+            }
+        }
+
         public static ElementTheme Theme
         {
             get

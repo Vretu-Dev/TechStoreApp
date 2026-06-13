@@ -21,6 +21,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Text="Ustawienia Aplikacji" Style="{StaticResource TitleTextBlockStyle}" HorizontalAlignment="Center" Margin="0,0,0,30" />
@@ -34,6 +35,30 @@
                     <ComboBoxItem Content="Jasny" />
                     <ComboBoxItem Content="Ciemny" />
                 </ComboBox>
+            </StackPanel>
+
+            <!-- Sekcja: Baza Danych -->
+            <StackPanel Grid.Row="2" Spacing="15" Padding="20" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="8" Margin="0,20,0,0">
+                <TextBlock Text="Baza Danych" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <ComboBox Header="Rodzaj Bazy" HorizontalAlignment="Stretch" 
+                          SelectedIndex="{Binding SelectedDatabaseModeIndex, Mode=TwoWay}">
+                    <ComboBoxItem Content="Lokalna (SQLite)" />
+                    <ComboBoxItem Content="Zewnętrzna (SQL Server)" />
+                </ComboBox>
+                
+                <TextBox Header="Connection String" 
+                         Text="{Binding ExternalConnectionString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Visibility="{Binding ExternalConnectionVisibility, Mode=OneWay}"
+                         PlaceholderText="Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;" />
+                <TextBlock Text="Zmiana bazy danych wymaga ponownego uruchomienia aplikacji."
+                           Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                           TextWrapping="Wrap"
+                           FontSize="12" />
+                <Button Content="Uruchom ponownie"
+                        Style="{StaticResource AccentButtonStyle}"
+                        HorizontalAlignment="Stretch"
+                        Visibility="{Binding IsRestartRequired, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                        Click="RestartButtonClicked" />
             </StackPanel>
         </Grid>
     </ScrollViewer>
